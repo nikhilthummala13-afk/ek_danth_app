@@ -609,86 +609,72 @@ async function doLogout(){
 
 async function refresh(){
 
-  if(!client){
-    return;
-  }
+  if(!client) return;
 
-  document.getElementById("status").textContent =
-    "Loading…";
+  document.getElementById("status").textContent="Loading…";
 
-  const donationsResult =
-    await client
-      .from("donations")
-      .select("*")
-      .order("created_at",{ascending:false});
+  const donationsResult=await client
+    .from("donations")
+    .select("*")
+    .order("created_at",{ascending:false});
 
-  const expensesResult =
-    await client
-      .from("expenses")
-      .select("*")
-      .order("created_at",{ascending:false});
-
+  const expensesResult=await client
+    .from("expenses")
+    .select("*")
+    .order("created_at",{ascending:false});
 
   if(donationsResult.error){
-
-    document.getElementById("status").textContent =
-      "Chanda error: " +
-      donationsResult.error.message;
-
+    document.getElementById("status").textContent=
+      "Chanda error: "+donationsResult.error.message;
     return;
   }
-
 
   if(expensesResult.error){
-
-    document.getElementById("status").textContent =
-      "Expense error: " +
-      expensesResult.error.message;
-
+    document.getElementById("status").textContent=
+      "Expense error: "+expensesResult.error.message;
     return;
   }
 
+  const D=donationsResult.data||[];
+  const E=expensesResult.data||[];
 
-  const D =
-    donationsResult.data || [];
+  const totalChanda=D.reduce(
+    (sum,item)=>sum+Number(item.amount||0),0
+  );
 
-  const E =
-    expensesResult.data || [];
+  const totalExpenses=E.reduce(
+    (sum,item)=>sum+Number(item.amount||0),0
+  );
 
-
-  const totalChanda =
-    D.reduce(
-      (sum,item) =>
-        sum + Number(item.amount || 0),
-      0
-    );
-
-
-  const totalExpenses =
-    E.reduce(
-      (sum,item) =>
-        sum + Number(item.amount || 0),
-      0
-    );
-
-
-  document.getElementById("tot").textContent =
+  document.getElementById("tot").textContent=
     money(totalChanda);
 
-  document.getElementById("exp").textContent =
+  document.getElementById("exp").textContent=
     money(totalExpenses);
 
-  document.getElementById("bal").textContent =
-    money(totalChanda - totalExpenses);
+  document.getElementById("bal").textContent=
+    money(totalChanda-totalExpenses);
 
-  document.getElementById("num").textContent =
-    D.length;
+  document.getElementById("num").textContent=D.length;
 
 
-  /* CHANDA DISPLAY */
+  /* CHANDA RECORDS */
 
-  document.getElementById("donations").innerHTML =
+  document.getElementById("donations").innerHTML=
     D.map(function(x){
+
+      let deleteButton="";
+
+      if(session){
+        deleteButton=`
+          <br>
+          <button
+            class="danger"
+            onclick="deleteDonation(${x.id})">
+            🗑️ Delete
+          </button>
+        `;
+      }
 
       return `
         <div class="item">
@@ -699,11 +685,9 @@ async function refresh(){
           <br>
 
           <span class="small">
-            Receipt:
-            ${esc(x.receipt_no || "")}
-            •
-            ${esc(x.payment_method || "")}
-            ${x.phone ? " • " + esc(x.phone) : ""}
+            Receipt: ${esc(x.receipt_no||"")}
+            • ${esc(x.payment_method||"")}
+            ${x.phone ? " • "+esc(x.phone):""}
           </span>
 
           <br>
@@ -714,43 +698,126 @@ async function refresh(){
             Receipt / WhatsApp
           </button>
 
+          ${deleteButton}
+
         </div>
       `;
 
     }).join("")
-    ||
-    "No chanda records.";
+    ||"No chanda records.";
 
 
-  /* EXPENSE DISPLAY */
+  /* EXPENSE RECORDS */
 
-  document.getElementById("expenses").innerHTML =
+  document.getElementById("expenses").innerHTML=
     E.map(function(x){
+
+      let deleteButton="";
+
+      if(session){
+        deleteButton=`
+          <br>
+          <button
+            class="danger"
+            onclick="deleteExpense(${x.id})">
+            🗑️ Delete
+          </button>
+        `;
+      }
 
       return `
         <div class="item">
 
-          <b>${esc(x.title || "")}</b>
+          <b>${esc(x.title||"")}</b>
           — ${money(x.amount)}
 
           <br>
 
           <span class="small">
-            ${esc(x.note || "")}
+            Expense No: ${esc(x.expense_no||"")}
+            ${x.note ? " • "+esc(x.note):""}
           </span>
+
+          ${deleteButton}
 
         </div>
       `;
 
     }).join("")
-    ||
-    "No expenses.";
+    ||"No expenses.";
 
 
-  document.getElementById("status").textContent =
-    "Online • " +
+  document.getElementById("status").textContent=
+    "Online • "+
     new Date().toLocaleTimeString("en-IN");
+}
 
+
+/* DELETE CHANDA */
+
+async function deleteDonation(id){
+
+  if(!session){
+    alert("Committee leader login required.");
+    return;
+  }
+
+  if(!confirm(
+    "Are you sure you want to delete this Chanda record?"
+  )){
+    return;
+  }
+
+  const result=await client
+    .from("donations")
+    .delete()
+    .eq("id",id);
+
+  if(result.error){
+    alert(
+      "Could not delete Chanda:\n\n"+
+      result.error.message
+    );
+    return;
+  }
+
+  await refresh();
+
+  alert("Chanda deleted successfully.");
+}
+
+
+/* DELETE EXPENSE */
+
+async function deleteExpense(id){
+
+  if(!session){
+    alert("Committee leader login required.");
+    return;
+  }
+
+  if(!confirm(
+    "Are you sure you want to delete this Expense record?"
+  )){
+    return;
+  }
+
+  const result=await client
+    .from("expenses")
+    .delete()
+    .eq("id",id);
+
+  if(result.error){
+    alert(
+      "Could not delete Expense:\n\n"+
+      result.error.message
+    );
+    return;
+  }
+
+  await refresh();
+
+  alert("Expense deleted successfully.");
 }
 
 
