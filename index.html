@@ -894,112 +894,71 @@ async function saveDonation(){
 async function saveExpense(){
 
   if(!client){
-
     alert("Connect database first.");
     return;
-
   }
 
-
   if(!session){
-
-    const s =
-      await client.auth.getSession();
-
-    session =
-      s.data.session;
-
+    const s = await client.auth.getSession();
+    session = s.data.session;
   }
 
-
   if(!session){
-
-    alert(
-      "Committee leader login required."
-    );
-
+    alert("Committee leader login required.");
     return;
-
   }
-
 
   const name =
-    document.getElementById("en")
-      .value.trim();
+    document.getElementById("en").value.trim();
 
   const amount =
-    Number(
-      document.getElementById("ea")
-        .value
-    );
+    Number(document.getElementById("ea").value);
 
   const noteText =
-    document.getElementById("note")
-      .value.trim();
-
+    document.getElementById("note").value.trim();
 
   if(!name){
-
     alert("Enter expense description.");
     return;
-
   }
-
 
   if(!amount || amount <= 0){
-
     alert("Enter a valid expense amount.");
     return;
-
   }
 
-
-  /*
-     Your expenses table uses:
-     title
-     amount
-     note
-  */
+  const expenseNo =
+    "EX-" + Date.now().toString().slice(-8);
 
   const record = {
-
-    title:name,
-
-    amount:amount,
-
-    note:noteText
-
+    expense_no: expenseNo,
+    title: name,
+    amount: amount,
+    note: noteText
   };
-
 
   const result =
     await client
       .from("expenses")
       .insert(record);
 
-
   if(result.error){
-
     alert(
       "Expense save failed:\n\n" +
       result.error.message
     );
-
     return;
-
   }
-
 
   document.getElementById("en").value = "";
   document.getElementById("ea").value = "";
   document.getElementById("note").value = "";
 
-
   await refresh();
 
   alert("Expense saved successfully.");
-
 }
+
 
 
 /* ==============================
