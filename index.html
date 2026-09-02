@@ -1,34 +1,654 @@
-<!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>EK DANTH ASSOCIATION MUDUNURU</title><!-- expenses-fix-2026-09-02 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EK DANTH ASSOCIATION MUDUNURU</title>
+
 <style>
-body{margin:0;font-family:Arial,sans-serif;background:#faf4e8;color:#222}header{background:#8b0000;color:#fff;text-align:center;padding:18px}header img{width:85px;height:85px;border-radius:50%;object-fit:cover;border:3px solid #d4af37}main{max-width:680px;margin:auto;padding:12px}.card{background:#fff;margin:12px 0;padding:16px;border-radius:14px;box-shadow:0 2px 9px #0002}.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{text-align:center;background:#fff2c9;padding:12px;border-radius:10px}.stat b{display:block;font-size:21px;color:#8b0000}input,select{width:100%;padding:12px;margin:6px 0 10px;box-sizing:border-box;border:1px solid #bbb;border-radius:8px;font-size:16px}button{padding:11px 14px;border:0;border-radius:8px;font-weight:bold;margin:3px}.red{background:#8b0000;color:#fff}.gold{background:#d4af37}.green{background:#25d366;color:#fff}.danger{background:#b00020;color:#fff}.hidden{display:none}.item{border-bottom:1px solid #eee;padding:11px 0}.small{font-size:12px;color:#666}
-</style></head><body>
-<header><img src="logo.jpg"><h2>EK DANTH ASSOCIATION MUDUNURU</h2><div>Vinayaka Chavithi • Chanda • Expenses • Receipts</div></header>
-<main>
-<div id="setup" class="card hidden"><h3>🌐 Database</h3><p class="small">Supabase connection is built into this app.</p></div>
-<div class="card"><button class="gold" onclick="loginPanel.classList.toggle('hidden')">🔐 Committee Leader</button><button onclick="refresh()">🔄 Refresh</button><p id="status" class="small">Not connected.</p></div>
-<div class="stats"><div class="stat">Total Chanda<b id="tot">₹0</b></div><div class="stat">Expenses<b id="exp">₹0</b></div><div class="stat">Balance<b id="bal">₹0</b></div><div class="stat">Receipts<b id="num">0</b></div></div>
-<div id="loginPanel" class="card hidden"><h3>Committee Leader Login</h3><input id="email" type="email" placeholder="Email"><input id="pw" type="password" placeholder="Password"><button class="red" onclick="doLogin()">Login</button><p id="loginMsg" class="small"></p></div>
-<div id="admin" class="hidden">
-<div class="card"><h3>➕ Chanda</h3><input id="dn" placeholder="Donor name"><input id="dp" placeholder="Phone"><input id="da" type="number" placeholder="Amount ₹"><select id="dm"><option>Cash</option><option>UPI</option><option>Bank Transfer</option></select><button class="red" onclick="saveDonation()">Save Chanda</button></div>
-<div class="card"><h3>💸 Expense</h3><input id="en" placeholder="Expense description"><input id="ea" type="number" placeholder="Amount ₹"><input id="note" placeholder="Note"><button class="red" onclick="saveExpense()">Save Expense</button></div>
+*{
+  box-sizing:border-box;
+  font-family:Arial,sans-serif;
+}
+
+body{
+  margin:0;
+  background:#f4f6f8;
+  color:#222;
+}
+
+header{
+  background:#ff6b00;
+  color:white;
+  text-align:center;
+  padding:18px 10px;
+}
+
+header h1{
+  margin:0;
+  font-size:24px;
+}
+
+header p{
+  margin:6px 0 0;
+  font-size:14px;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:15px;
+}
+
+.card{
+  background:white;
+  border-radius:12px;
+  padding:16px;
+  margin-bottom:15px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+h2{
+  margin-top:0;
+  color:#ff6b00;
+}
+
+input,select,button{
+  width:100%;
+  padding:12px;
+  margin:6px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:15px;
+}
+
+button{
+  background:#ff6b00;
+  color:white;
+  border:none;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:hover{
+  opacity:.9;
+}
+
+.secondary{
+  background:#333;
+}
+
+.danger{
+  background:#d32f2f;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+
+.stat{
+  background:white;
+  padding:14px;
+  text-align:center;
+  border-radius:10px;
+  box-shadow:0 2px 7px rgba(0,0,0,.08);
+}
+
+.stat strong{
+  display:block;
+  font-size:20px;
+  margin-top:5px;
+}
+
+.record{
+  border-bottom:1px solid #ddd;
+  padding:12px 0;
+}
+
+.record:last-child{
+  border-bottom:none;
+}
+
+.amount{
+  font-weight:bold;
+  color:#168a00;
+}
+
+.expenseAmount{
+  font-weight:bold;
+  color:#d32f2f;
+}
+
+.status{
+  text-align:center;
+  padding:8px;
+  font-size:13px;
+}
+
+.hidden{
+  display:none!important;
+}
+
+@media(max-width:650px){
+  .stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  header h1{
+    font-size:20px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>EK DANTH ASSOCIATION MUDUNURU</h1>
+  <p>Vinayaka Chavithi Chanda & Expenses</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <button onclick="login()">Committee Leader Login</button>
+    <button class="secondary" onclick="refreshData()">Refresh</button>
+    <div id="status" class="status">Connecting...</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      Total Chanda
+      <strong id="totalChanda">₹0</strong>
+    </div>
+
+    <div class="stat">
+      Expenses
+      <strong id="totalExpenses">₹0</strong>
+    </div>
+
+    <div class="stat">
+      Balance
+      <strong id="balance">₹0</strong>
+    </div>
+
+    <div class="stat">
+      Receipts
+      <strong id="receiptCount">0</strong>
+    </div>
+  </div>
+
+  <br>
+
+  <div id="leaderArea" class="hidden">
+
+    <div class="card">
+      <h2>Add Chanda</h2>
+
+      <input id="donorName" placeholder="Donor Name">
+
+      <input id="phone" placeholder="Phone Number" type="tel">
+
+      <input id="amount" placeholder="Amount ₹" type="number">
+
+      <select id="paymentMethod">
+        <option value="Cash">Cash</option>
+        <option value="UPI">UPI</option>
+        <option value="Bank">Bank</option>
+      </select>
+
+      <button onclick="saveDonation()">Save Chanda</button>
+    </div>
+
+    <div class="card">
+      <h2>Add Expense</h2>
+
+      <input id="expenseName" placeholder="Expense Description">
+
+      <input id="expenseAmountInput" placeholder="Amount ₹" type="number">
+
+      <input id="expenseNote" placeholder="Note">
+
+      <button onclick="saveExpense()">Save Expense</button>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <h2>Chanda Records</h2>
+    <div id="donationRecords">
+      Loading...
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Expense Records</h2>
+    <div id="expenseRecords">
+      Loading...
+    </div>
+  </div>
+
 </div>
-<div class="card"><h3>📋 Chanda Records</h3><div id="donations">Connect database to load records.</div></div>
-<div class="card"><h3>💸 Expense Records</h3><div id="expenses">Connect database to load records.</div></div>
-<div id="receiptBox" class="card hidden"><h3>🧾 Receipt</h3><div id="receipt"></div></div>
-</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-const SUPABASE_URL="https://niapiophourwilnmwzaq.supabase.co";const SUPABASE_KEY="sb_publishable_gttNR-DJRQzDZtPrDzSs1g_YWQnzUYS";let client=null,session=null;
-function money(x){return "₹"+Number(x||0).toLocaleString("en-IN")}
-function esc(x){return String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function connect(){}
-function loadSDK(){let k=SUPABASE_KEY;status.textContent="Connecting…";let s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js";s.onload=()=>{try{client=window.supabase.createClient(SUPABASE_URL,k,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});setup.classList.add("hidden");status.textContent="Connected to Supabase";refresh()}catch(e){status.textContent="Connection error: "+e.message}};s.onerror=()=>status.textContent="Could not load Supabase library. Check internet.";document.head.appendChild(s)}
-async function doLogin(){if(!client)return loginMsg.textContent="Connect database first.";let r=await client.auth.signInWithPassword({email:email.value.trim(),password:pw.value});if(r.error){loginMsg.textContent="Login failed: "+r.error.message;return}session=r.data.session;admin.classList.remove("hidden");loginMsg.textContent="Login successful.";refresh()}
-async function refresh(){if(!client)return;status.textContent="Loading…";let [d,e]=await Promise.all([client.from("donations").select("*").order("created_at",{ascending:false}),client.from("expenses").select("*").order("created_at",{ascending:false})]);if(d.error||e.error){status.textContent=(d.error||e.error).message;return}let D=d.data||[],E=e.data||[],t=D.reduce((a,x)=>a+Number(x.amount),0),q=E.reduce((a,x)=>a+Number(x.amount),0);tot.textContent=money(t);exp.textContent=money(q);bal.textContent=money(t-q);num.textContent=D.length;donations.innerHTML=D.map(x=>`<div class=item><b>${esc(x.donor_name)}</b> — ${money(x.amount)}<br><span class=small>${esc(x.receipt_no||"")} • ${esc(x.payment_method||"")}</span><br><button class=green onclick='showReceipt(${JSON.stringify(x)})'>Receipt / WhatsApp</button></div>`).join("")||"No chanda records.";expenses.innerHTML=E.map(x=>`<div class=item><b>${esc(x.expense_name)}</b> — ${money(x.amount)}<br><span class=small>${esc(x.notes||"")}</span></div>`).join("")||"No expenses.";status.textContent="Online • "+new Date().toLocaleTimeString("en-IN")}
-async function saveDonation(){if(!session)return alert("Committee leader login required.");let n=dn.value.trim(),a=Number(da.value);if(!n||!a)return alert("Enter donor and amount.");let r=await client.from("donations").insert({receipt_no:"EDA-"+Date.now().toString().slice(-8),donor_name:n,phone:dp.value.trim(),amount:a,payment_method:dm.value}).select().single();if(r.error)return alert(r.error.message);showReceipt(r.data);dn.value=dp.value=da.value="";refresh()}
-async function saveExpense(){if(!session)return alert("Committee leader login required.");let n=en.value.trim(),a=Number(ea.value);if(!n||!a)return alert("Enter expense and amount.");let payload={expense_name:n,amount:a,notes:note.value.trim()};let r=await client.from("expenses").insert(payload).select().single();if(r.error){alert("Expense save failed: "+r.error.message+"\\n\\nIf you just added expense_name in Supabase, redeploy this updated index.html and refresh the app.");return}en.value=ea.value=note.value="";await refresh()}
-function showReceipt(x){receiptBox.classList.remove("hidden");receipt.innerHTML=`<b>EK DANTH ASSOCIATION MUDUNURU</b><hr>Receipt: <b>${esc(x.receipt_no)}</b><br>Donor: ${esc(x.donor_name)}<br>Amount: <b>${money(x.amount)}</b><br>Payment: ${esc(x.payment_method||"")}<br><br><button class=green onclick='share(${JSON.stringify(x)})'>WhatsApp</button> <button class=gold onclick="print()">Print / PDF</button>`}
-function share(x){location.href="https://wa.me/?text="+encodeURIComponent(`EK DANTH ASSOCIATION MUDUNURU\nVinayaka Chavithi Chanda Receipt\nReceipt: ${x.receipt_no}\nDonor: ${x.donor_name}\nAmount: ${money(x.amount)}\nThank you 🙏`)}
+
+const SUPABASE_URL =
+"https://niapiophourwilnmwzaq.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_gttNR-DJRQzDZtPrDzSs1g_YWQnzUYS";
+
+let client = null;
+let session = null;
+
+
+/* CONNECT SUPABASE */
+
+async function loadSDK(){
+
+  try{
+
+    client = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    document.getElementById("status").innerText =
+      "Connected to database";
+
+    const result = await client.auth.getSession();
+
+    session = result.data.session;
+
+    if(session){
+      document.getElementById("leaderArea")
+        .classList.remove("hidden");
+    }
+
+    await refreshData();
+
+  }catch(error){
+
+    document.getElementById("status").innerText =
+      "Database connection failed";
+
+    console.error(error);
+  }
+}
+
+
+/* LOGIN */
+
+async function login(){
+
+  if(!client){
+    alert("Database is not connected");
+    return;
+  }
+
+  const email =
+    prompt("Committee Leader Email:");
+
+  if(!email) return;
+
+  const password =
+    prompt("Password:");
+
+  if(!password) return;
+
+  const {data,error} =
+    await client.auth.signInWithPassword({
+      email:email,
+      password:password
+    });
+
+  if(error){
+
+    alert("Login failed: " + error.message);
+    return;
+  }
+
+  session = data.session;
+
+  document.getElementById("leaderArea")
+    .classList.remove("hidden");
+
+  alert("Committee Leader Login successful");
+
+}
+
+
+/* SAVE CHANDA */
+
+async function saveDonation(){
+
+  if(!session){
+
+    alert("Committee Leader Login required");
+    return;
+  }
+
+  const name =
+    document.getElementById("donorName").value.trim();
+
+  const phone =
+    document.getElementById("phone").value.trim();
+
+  const amount =
+    Number(document.getElementById("amount").value);
+
+  const payment =
+    document.getElementById("paymentMethod").value;
+
+  if(!name || !amount){
+
+    alert("Please enter donor name and amount");
+    return;
+  }
+
+  const {error} =
+    await client
+      .from("donations")
+      .insert({
+        donor_name:name,
+        phone:phone,
+        amount:amount,
+        payment_method:payment
+      });
+
+  if(error){
+
+    alert("Could not add chanda: " + error.message);
+    return;
+  }
+
+  document.getElementById("donorName").value="";
+  document.getElementById("phone").value="";
+  document.getElementById("amount").value="";
+
+  alert("Chanda saved successfully");
+
+  refreshData();
+}
+
+
+/* SAVE EXPENSE */
+
+async function saveExpense(){
+
+  if(!session){
+
+    alert("Committee Leader Login required");
+    return;
+  }
+
+  const name =
+    document.getElementById("expenseName")
+      .value.trim();
+
+  const amount =
+    Number(
+      document.getElementById("expenseAmountInput").value
+    );
+
+  const note =
+    document.getElementById("expenseNote")
+      .value.trim();
+
+  if(!name || !amount){
+
+    alert("Please enter expense name and amount");
+    return;
+  }
+
+  const payload = {
+    expense_name:name,
+    amount:amount,
+    notes:note
+  };
+
+  const {data,error} =
+    await client
+      .from("expenses")
+      .insert(payload)
+      .select()
+      .single();
+
+  if(error){
+
+    alert(
+      "Could not add expense: " +
+      error.message
+    );
+
+    console.error(error);
+    return;
+  }
+
+  document.getElementById("expenseName").value="";
+  document.getElementById("expenseAmountInput").value="";
+  document.getElementById("expenseNote").value="";
+
+  alert("Expense saved successfully");
+
+  refreshData();
+}
+
+
+/* REFRESH DATA */
+
+async function refreshData(){
+
+  if(!client) return;
+
+  const donationsResult =
+    await client
+      .from("donations")
+      .select("*")
+      .order("created_at",{ascending:false});
+
+  const expensesResult =
+    await client
+      .from("expenses")
+      .select("*")
+      .order("created_at",{ascending:false});
+
+  if(donationsResult.error){
+
+    console.error(
+      "Donation error:",
+      donationsResult.error
+    );
+  }
+
+  if(expensesResult.error){
+
+    console.error(
+      "Expense error:",
+      expensesResult.error
+    );
+  }
+
+  const donations =
+    donationsResult.data || [];
+
+  const expenses =
+    expensesResult.data || [];
+
+
+  /* TOTALS */
+
+  const totalChanda =
+    donations.reduce(
+      (sum,item) =>
+        sum + Number(item.amount || 0),
+      0
+    );
+
+  const totalExpenses =
+    expenses.reduce(
+      (sum,item) =>
+        sum + Number(item.amount || 0),
+      0
+    );
+
+  const balance =
+    totalChanda - totalExpenses;
+
+
+  document.getElementById("totalChanda")
+    .innerText =
+    "₹" + totalChanda.toLocaleString("en-IN");
+
+  document.getElementById("totalExpenses")
+    .innerText =
+    "₹" + totalExpenses.toLocaleString("en-IN");
+
+  document.getElementById("balance")
+    .innerText =
+    "₹" + balance.toLocaleString("en-IN");
+
+  document.getElementById("receiptCount")
+    .innerText =
+    donations.length;
+
+
+  /* DONATION RECORDS */
+
+  const donationBox =
+    document.getElementById("donationRecords");
+
+  if(!donations.length){
+
+    donationBox.innerHTML =
+      "<p>No chanda records yet.</p>";
+
+  }else{
+
+    donationBox.innerHTML =
+      donations.map(item => {
+
+        const date =
+          item.created_at
+          ? new Date(item.created_at)
+              .toLocaleString("en-IN")
+          : "";
+
+        return `
+          <div class="record">
+
+            <strong>
+              ${escapeHTML(item.donor_name || "")}
+            </strong>
+
+            <br>
+
+            📞 ${escapeHTML(item.phone || "-")}
+
+            <br>
+
+            💰
+            <span class="amount">
+              ₹${Number(item.amount || 0)
+                .toLocaleString("en-IN")}
+            </span>
+
+            <br>
+
+            💳 ${escapeHTML(
+              item.payment_method || "-"
+            )}
+
+            <br>
+
+            <small>${date}</small>
+
+          </div>
+        `;
+
+      }).join("");
+  }
+
+
+  /* EXPENSE RECORDS */
+
+  const expenseBox =
+    document.getElementById("expenseRecords");
+
+  if(!expenses.length){
+
+    expenseBox.innerHTML =
+      "<p>No expense records yet.</p>";
+
+  }else{
+
+    expenseBox.innerHTML =
+      expenses.map(item => {
+
+        const date =
+          item.created_at
+          ? new Date(item.created_at)
+              .toLocaleString("en-IN")
+          : "";
+
+        return `
+          <div class="record">
+
+            <strong>
+              ${escapeHTML(
+                item.expense_name || ""
+              )}
+            </strong>
+
+            <br>
+
+            💰
+            <span class="expenseAmount">
+              ₹${Number(item.amount || 0)
+                .toLocaleString("en-IN")}
+            </span>
+
+            ${
+              item.notes
+              ? `<br>📝 ${escapeHTML(item.notes)}`
+              : ""
+            }
+
+            <br>
+
+            <small>${date}</small>
+
+          </div>
+        `;
+
+      }).join("");
+  }
+
+}
+
+
+/* SECURITY */
+
+function escapeHTML(value){
+
+  return String(value)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+
+/* START */
+
 loadSDK();
-</script></body></html>
+
+</script>
+
+</body>
+</html>
