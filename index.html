@@ -406,10 +406,10 @@ async function saveExpense(){
   }
 
   const payload = {
-    expense_name:name,
-    amount:amount,
-    notes:note
-  };
+  title:name,
+  amount:amount,
+  note:note.value.trim()
+};
 
   const {data,error} =
     await client
