@@ -248,8 +248,40 @@ let session = null;
 
 /* CONNECT SUPABASE */
 
-async function loadSDK(){
+async function saveDonation(){
+  if(!session){
+    return alert("Committee leader login required.");
+  }
 
+  let n=dn.value.trim();
+  let a=Number(da.value);
+
+  if(!n || !a){
+    return alert("Enter donor and amount.");
+  }
+
+  let receipt="EDA-"+Date.now().toString().slice(-8);
+
+  let r=await client.from("donations").insert({
+    receipt_no:receipt,
+    donor_name:n,
+    phone:dp.value.trim(),
+    amount:a,
+    payment_method:dm.value
+  }).select().single();
+
+  if(r.error){
+    return alert("Could not add chanda: "+r.error.message);
+  }
+
+  showReceipt(r.data);
+
+  dn.value="";
+  dp.value="";
+  da.value="";
+
+  await refresh();
+}
   try{
 
     client = window.supabase.createClient(
